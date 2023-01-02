@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#000000</color>
+    <color name="background">#191919</color>
+    <color name="gray">#2B2B2B</color>
+    <color name="grayLite">#515151</color>
+    <color name="grayLightExtra">#FF888888</color>
+    <color name="graytext">#FFBBBBBB</color>
+    <color name="whiteIcon">#FFEEEEEE</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="surfieGreen">#197278</color>
+    <color name="burntOrange">#C44900</color>
+
+    <color name="disabletrans">#FF888888</color>
+    <color name="disable">#888888</color>
+    <color name="trans">#00FFFFFF</color>
+    <color name="transbackground">#BB000000</color>
+
+
+    <color name="grayTransExtralite">#66000000</color>
+    <color name="grayTranslite">#99000000</color>
+    <color name="grayTrans">#BB000000</color>
+    <color name="grayTransDark">#CC000000</color>
+    <color name="grayTransExtraDark">#DD000000</color>
+
+
+
+    <color name="red">#FF0000</color>
+    <color name="blue">#3F51B5</color>
+    <color name="green">#4CAF50</color>
+
+</resources>

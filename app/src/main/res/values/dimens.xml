@@ -1,0 +1,16 @@
+<resources>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="editor_size">35dp</dimen>
+    <dimen name="normal_margin">8dp</dimen>
+    <dimen name="large_margin">16dp</dimen>
+
+    <dimen name="small_extra">10sp</dimen>
+    <dimen name="small">12sp</dimen>
+    <dimen name="medium">18sp</dimen>
+    <dimen name="large">20sp</dimen>
+
+    <dimen name="algo_icon_width">50dp</dimen>
+    <dimen name="trackHeight">14dp</dimen>
+    <dimen name="thumbRadius">8dp</dimen>
+    <dimen name="strokeWidth">3dp</dimen>
+</resources>

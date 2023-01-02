@@ -1,0 +1,47 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.PhotoEditor" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/background</item>
+        <item name="colorPrimaryVariant">@color/white</item>
+        <item name="colorOnPrimary">@color/graytext</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/graytext</item>
+        <item name="colorSecondaryVariant">@color/graytext</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <item name="colorPrimaryDark">@color/background</item>
+
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+
+        <item name="android:textColor">@color/white</item>
+
+    </style>
+
+    <style name="Theme.PhotoEditor.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+
+
+    <style name="Tooltip" parent="Widget.MaterialComponents.Tooltip">
+        <item name="backgroundTint">@color/grayLite</item>
+    </style>
+
+
+
+<!--    <style name="Widget.MaterialComponents.Tooltip" parent="android:Widget">-->
+<!--        <item name="shapeAppearance">@style/ShapeAppearance.MaterialComponents.Tooltip</item>-->
+<!--    </style>-->
+
+<!--    <style name="ShapeAppearance.MaterialComponents.Tooltip">-->
+<!--        <item name="cornerFamily">rounded</item>-->
+<!--        <item name="cornerSize">8dp</item>-->
+<!--    </style>-->
+
+
+
+
+</resources>

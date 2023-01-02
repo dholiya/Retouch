@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:orientation="vertical"
+    android:theme="@style/Theme.PhotoEditor"
+    tools:context=".EditImageActivity">
+
+    <include
+        android:id="@+id/include"
+        layout="@layout/app_bar_save" />
+
+
+    <include
+        android:id="@+id/includesave"
+        layout="@layout/app_bar" />
+
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/ads"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_below="@+id/include" />
+
+    <RelativeLayout
+        android:id="@+id/edit"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/tools"
+        android:layout_below="@+id/ads"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/ads">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/outerLy"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <zest.photoeditorpro.photoeditor.view.RDImageView
+                android:id="@+id/imgViewCustom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:adjustViewBounds="true"
+                android:background="@color/surfieGreen"
+                android:scaleType="fitCenter"
+                android:src="@drawable/sa" />
+
+
+            <androidx.constraintlayout.utils.widget.ImageFilterView
+                android:id="@+id/imgViewFilter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:adjustViewBounds="true"
+                android:minWidth="200dp"
+                android:minHeight="200dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/cat"
+                android:visibility="gone" />
+
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <LinearLayout
+            android:id="@+id/progress"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/grayTransExtralite"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:indeterminate="true"
+                android:indeterminateBehavior="repeat"
+                app:indicatorColor="@color/background"
+                app:trackColor="@color/grayLightExtra" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/subToolFL"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/edit"
+        android:background="@color/transbackground"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/subCrop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/transbackground"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp"
+            android:visibility="gone"
+            android:weightSum="10">
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/subAuto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/transbackground"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp"
+            android:weightSum="10">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/detectedMask"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingHorizontal="6dp"
+                android:paddingTop="2dp"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:ignore="MissingConstraints"
+                tools:listitem="@layout/row_common" />
+
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/subBrush"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp"
+            android:visibility="gone"
+            android:weightSum="10">
+
+
+            <ImageView
+                android:id="@+id/sliderBrushSize"
+                android:layout_width="0dp"
+                android:layout_height="25dp"
+                android:layout_weight="1"
+                android:src="@drawable/tool_adjust" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/sliderBrush"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="7"
+                android:stepSize="1"
+                android:value="50"
+                android:valueFrom="10"
+                android:valueTo="100"
+                app:haloColor="@color/grayLite"
+                app:labelStyle="@style/Tooltip"
+                app:thumbColor="@color/white"
+                app:thumbRadius="@dimen/thumbRadius"
+                app:thumbStrokeColor="@color/grayLite"
+                app:thumbStrokeWidth="1dp"
+                app:tickColor="@color/trans"
+                app:trackColorActive="@color/white"
+                app:trackColorInactive="@color/grayLite"
+                app:trackHeight="@dimen/trackHeight" />
+
+            <TextView
+                android:id="@+id/sliderBrushText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="10"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/subErase"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/transbackground"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp"
+            android:weightSum="10">
+
+            <ImageView
+                android:id="@+id/sliderEraseSize"
+                android:layout_width="0dp"
+                android:layout_height="25dp"
+                android:layout_weight="1"
+                android:src="@drawable/tool_adjust" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/sliderErase"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="7"
+                android:stepSize="1"
+                android:value="50"
+                android:valueFrom="10"
+                android:valueTo="100"
+                app:haloColor="@color/grayLite"
+                app:labelStyle="@style/Tooltip"
+                app:thumbColor="@color/white"
+                app:thumbRadius="@dimen/thumbRadius"
+                app:thumbStrokeColor="@color/grayLite"
+                app:thumbStrokeWidth="1dp"
+                app:tickColor="@color/trans"
+                app:trackColorActive="@color/white"
+                app:trackColorInactive="@color/grayLite"
+                app:trackHeight="@dimen/trackHeight" />
+
+            <TextView
+                android:id="@+id/sliderEraseText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="10"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/black"
+        android:gravity="center">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvTools"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="6dp"
+            android:paddingTop="2dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:ignore="MissingConstraints"
+            tools:listitem="@layout/row_common" />
+
+    </LinearLayout>
+
+
+</RelativeLayout>
