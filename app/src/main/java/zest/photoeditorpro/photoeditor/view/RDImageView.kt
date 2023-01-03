@@ -13,11 +13,10 @@ import androidx.appcompat.widget.AppCompatImageView
 import org.opencv.core.Rect
 import org.tensorflow.lite.task.vision.detector.Detection
 import org.tensorflow.lite.task.vision.segmenter.Segmentation
-import zest.photoeditorpro.photoeditor.ParentActivity.Companion.SCALE
+import zest.photoeditorpro.photoeditor.EditImageActivity.Companion.objectDetected
+import zest.photoeditorpro.photoeditor.EditImageActivity.Companion.objectSelected
 import zest.photoeditorpro.photoeditor.util.Str
-import zest.photoeditorpro.photoeditor.util.dpi2px
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 
@@ -29,7 +28,7 @@ class RDImageView : AppCompatImageView, canvasInterface {
     var lastPointer = 0
     var lastAction = 0
 
-    lateinit var detectionResults: MutableList<Detection>
+    var filterDetected: MutableList<Detection> = mutableListOf<Detection>();
 
 
     private var scaleFactor: Float = 1f
@@ -53,8 +52,7 @@ class RDImageView : AppCompatImageView, canvasInterface {
     var mErasePaint = Paint()
     var clearCanvas = false
 
-    //onclcikdetecteditem
-    var boundingBoxDetect = RectF()
+
 
     companion object {
         lateinit var mbitmap: Bitmap
@@ -153,7 +151,8 @@ class RDImageView : AppCompatImageView, canvasInterface {
                 }
             } else if (editMode.equals(Str.AUTO)) {
 
-                for (result in detectionResults) {
+                var i=0;
+                for (result in objectDetected) {
 
                     val boundingBox = result.boundingBox
 
@@ -170,34 +169,17 @@ class RDImageView : AppCompatImageView, canvasInterface {
                         Log.i("tblr", "yes")
 
                         if (System.currentTimeMillis() - time > ZOOM_TIME_DIFF_THRESHOLD) {
-                            boundingBoxDetect = boundingBox
-                            detectedInterface!!.detecteToMask(boundingBox)
+                            objectSelected = boundingBox
+                            detectedInterface!!.detecteToMask(boundingBox,i)
                             time = System.currentTimeMillis()
-                            editMode = Str.MODE_NONE
+//                            editMode = Str.MODE_NONE
                         }
-
                         break
                     } else {
                         Log.i("tblr", "no")
                     }
-
-
-                    // Draw bounding box around detected objects
-//                    val rect = RectF(left, top, right, bottom)
-//                    mcanvas.drawRect(rect, mPaint)
-
+                    i++
                 }
-
-//                dx = event.getX()
-//                dy = event.getY()
-
-//                val a:Int = mbitmap.getPixel(dx.toInt(), dy.toInt())
-//                val red = Color.red(a)
-//                val green = Color.green(a)
-//                val blue = Color.blue(a)
-//                val alpha = Color.alpha(a)
-
-
             }
 
         } else {
@@ -355,30 +337,6 @@ class RDImageView : AppCompatImageView, canvasInterface {
         clearCanvas = true
     }
 
-    override fun clearOtherMask(layoutPosition: Int, listMask: Detection) {
-        invalidate()
-
-        Log.i("asdadsas","cas")
-        val o = listMask.boundingBox
-        for (i in 0..o.left.toInt())
-            for (j in 0..o.height().toInt())
-                mcanvas.drawPoint(i.toFloat(), j.toFloat(), mErasePaint)
-
-        for (i in 0..o.width().toInt())
-            for (j in 0..o.top.toInt())
-                mcanvas.drawPoint(i.toFloat(), j.toFloat(), mErasePaint)
-
-
-        for (i in o.right.toInt()..o.width().toInt())
-            for (j in 0..o.height().toInt())
-                mcanvas.drawPoint(i.toFloat(), j.toFloat(), mErasePaint)
-
-        for (i in 0..o.width().toInt())
-            for (j in o.bottom.toInt()..o.height().toInt())
-                mcanvas.drawPoint(i.toFloat(), j.toFloat(), mErasePaint)
-
-
-    }
 
 
     @JvmName("getEditMode1")
@@ -412,31 +370,39 @@ class RDImageView : AppCompatImageView, canvasInterface {
         imageWidth: Int,
     ) {
         invalidate()
-        this.detectionResults = detectionResults
 
         mPaint.setARGB(255, 25, 114, 120)
-        mPaint.strokeWidth = 8F
+        mPaint.strokeWidth = 4F
 
         // PreviewView is in FILL_START mode. So we need to scale up the bounding box to match with
         // the size that the captured images will be displayed.
         scaleFactor = max(width * 1f / imageWidth, height * 1f / imageHeight)
 
+
         for (result in detectionResults) {
 
-            val boundingBox = result.boundingBox
+            result.boundingBox
 
-            val top = boundingBox.top * scaleFactor
-            val bottom = boundingBox.bottom * scaleFactor
-            val left = boundingBox.left * scaleFactor
-            val right = boundingBox.right * scaleFactor
+            val top = result.boundingBox.top * scaleFactor
+            val bottom = result.boundingBox.bottom * scaleFactor
+            val left = result.boundingBox.left * scaleFactor
+            val right = result.boundingBox.right * scaleFactor
 
-            // Draw bounding box around detected objects
+
+            if (result.boundingBox.left + result.boundingBox.width() > imageWidth) {
+                result.boundingBox.right = imageWidth.toFloat();
+            }
+            if (result.boundingBox.top + result.boundingBox.height() > imageHeight) {
+                result.boundingBox.bottom = imageHeight.toFloat();
+            }
+            filterDetected.add(result)
             val rect = RectF(left, top, right, bottom)
             mcanvas.drawRect(rect, mPaint)
-
         }
 
-        detectedInterface!!.detecteCrop(detectionResults, scaleFactor)
+        objectDetected = filterDetected;
+
+        detectedInterface!!.detecteCrop(filterDetected)
 
         mPaint.setARGB(150, 255, 99, 99)
         mPaint.strokeWidth = 25F
@@ -444,13 +410,13 @@ class RDImageView : AppCompatImageView, canvasInterface {
     }
 
 
-//mask
+    //mask
     fun setSegmentResults(
-    segmentResult: List<Segmentation>,
-    imageHeight: Int,
-    imageWidth: Int,
-    originalBmp: Bitmap
-) {
+        segmentResult: List<Segmentation>,
+        imageHeight: Int,
+        imageWidth: Int,
+        originalBmp: Bitmap,
+    ) {
         invalidate()
         Log.i("ssisiis", segmentResult.size.toString())
         if (segmentResult.isNotEmpty()) {
@@ -492,51 +458,18 @@ class RDImageView : AppCompatImageView, canvasInterface {
                 Bitmap.Config.ARGB_8888
             )
 
-//            //////////////////////////////////////////////////////////////////////////////////////
-// width > height
-//            var fx= boundingBoxDetect.width()*1f/maskTensor.width
-//            var fy= boundingBoxDetect.height()*1f/maskTensor.height
-//            var ss = max(fx,fy)
-///////////////////////////////////
 
-            var fx= imageWidth*1f /maskTensor.width
-            var fy=imageHeight*1f/ maskTensor.height
-            var ss = max(fx,fy)
-
-            Log.i("ss",ss.toString());
-////             PreviewView is in FILL_START mode. So we need to scale up the bounding
-////             box to match with the size that the captured images will be displayed.
-            val scaleFactor = max(originalBmp.width * 1f / imageWidth, originalBmp.height * 1f / imageHeight)
-
-            val scaleWidth = ((imageWidth /ss)).toInt()
-            val scaleHeight = ((imageHeight/ss)).toInt()
             val scaleBitmap = Bitmap.createScaledBitmap(image,
-                (boundingBoxDetect.width().toInt()), (boundingBoxDetect.height().toInt()), false)
-            val l = (boundingBoxDetect.left)
-            val r = (boundingBoxDetect.top)
-            Log.e("lrwidth width == originalBmp", width.toString())
-            Log.e("lrwidth width", maskTensor.width.toString())
-            Log.e("lrwidth boundingBoxDetect = imageWidth", (boundingBoxDetect.width()).toString())
-            Log.e("lrwidth boundingBoxDetect = 0", (boundingBoxDetect.height()).toString())
+                (objectSelected.width().toInt()),
+                (objectSelected.height().toInt()),
+                false)
+            val l = (objectSelected.left)
+            val r = (objectSelected.top)
 
-            Log.e("lrwidth width  == originalBmp s", scaleHeight.toString())
-            Log.e("lrwidth width s", scaleWidth.toString())
-
-
-            Log.e("lrwidth l", l.toString())
-            Log.e("lrwidth r", (r).toString())
-            //////////////////////////////////////////////////////////////////////////////////////
-
-
-            // PreviewView is in FILL_START mode. So we need to scale up the bounding
-            // box to match with the size that the captured images will be displayed.
-//            val scaleFactor = max(width * 1f / imageWidth, height * 1f / imageHeight)
-//            val scaleWidth = (imageWidth * scaleFactor).toInt()
-//            val scaleHeight = (imageHeight * scaleFactor).toInt()
-
-//            val scaleBitmap = Bitmap.createScaledBitmap(image, scaleWidth, scaleHeight, false)
-
-            mcanvas.drawBitmap(scaleBitmap, (l.roundToInt()).toFloat(), (r.roundToInt()).toFloat(), null)
+            mcanvas.drawBitmap(scaleBitmap,
+                (l.roundToInt()).toFloat(),
+                (r.roundToInt()).toFloat(),
+                null)
         }
 
     }

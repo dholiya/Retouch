@@ -38,7 +38,7 @@ class EditImageActivity : AppCompatActivity(), ToolsAdapter.OnToolSelected,
     Slider.OnChangeListener, ObjectDetectorHelper.DetectorListener,
     ImageSegmentationHelper.SegmentationListener, DetectedInterface,
     DetectedAdapter.OnMaskSelected {
-
+    val listCropImages = ArrayList<Bitmap>()
 
     private val TAG: String = "EditImageActivity"
     private lateinit var objectDetectorHelper: ObjectDetectorHelper
@@ -50,6 +50,12 @@ class EditImageActivity : AppCompatActivity(), ToolsAdapter.OnToolSelected,
     private lateinit var binding: ActivityEditImageBinding
     private lateinit var imgViewCustom: RDImageView;
 
+    companion object{
+        var objectDetected: MutableList<Detection> = mutableListOf<Detection>();
+        //onclcikdetecteditem
+        var objectSelected = RectF()
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,10 +66,30 @@ class EditImageActivity : AppCompatActivity(), ToolsAdapter.OnToolSelected,
         binding.sliderBrush.addOnChangeListener(this);
         binding.sliderErase.addOnChangeListener(this);
         imgViewCustom = RDImageView(this)
-
-
         imgViewCustom = binding.imgViewCustom
         imgViewCustom.setImageURI(Uri.parse(intent.extras?.getString("data")))
+
+//        initCustomImageView();
+
+
+//        Handler(Looper.getMainLooper()).postDelayed({
+//            binding.rvTools.findViewHolderForAdapterPosition(1)!!.itemView.performClick()
+//        }, 3)
+        objectDetectorHelper = ObjectDetectorHelper(
+            context = this,
+            objectDetectorListener = this)
+        imageSegmentationHelper = ImageSegmentationHelper(
+            context = this,
+            imageSegmentationListener = this
+        )
+
+        imgViewCustom.setEventListener(this);
+
+
+
+    }
+
+    private fun initCustomImageView() {
 
         val orignal = scaleBitmapH((imgViewCustom.drawable as BitmapDrawable?)!!.bitmap as Bitmap)
 
@@ -74,6 +100,9 @@ class EditImageActivity : AppCompatActivity(), ToolsAdapter.OnToolSelected,
             bmp = scaleBitmap((imgViewCustom.drawable as BitmapDrawable?)!!.bitmap as Bitmap)
         }
 
+//        if(bmp.width>1080){
+//            bmp = scaleBitmap(bmp)
+//        }
         imgViewCustom.setImageBitmap(bmp);
         if (bmp.width < bmp.height) {
             binding.outerLy.doOnLayout {
@@ -105,26 +134,6 @@ class EditImageActivity : AppCompatActivity(), ToolsAdapter.OnToolSelected,
             imgViewCustom.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
 
         }
-
-
-//        Handler(Looper.getMainLooper()).postDelayed({
-//            binding.rvTools.findViewHolderForAdapterPosition(1)!!.itemView.performClick()
-//        }, 3)
-        objectDetectorHelper = ObjectDetectorHelper(
-            context = this,
-            objectDetectorListener = this)
-        imageSegmentationHelper = ImageSegmentationHelper(
-            context = this,
-            imageSegmentationListener = this
-        )
-
-        imgViewCustom.setEventListener(this);
-
-//        imgViewCustom.setEventListener(object : DetectedInterface {
-//            override fun detecteToMask(leftC: Int, topC: Int, rightC: Int, bottomC: Int) {
-//                Log.i("topfds", topC.toString())
-//            }
-//        });
 
     }
 
@@ -278,74 +287,40 @@ class EditImageActivity : AppCompatActivity(), ToolsAdapter.OnToolSelected,
     }
 
 
-    override fun detecteToMask(boundingBox: RectF) {
-
-        var originalBmp = (imgViewCustom.drawable as BitmapDrawable?)!!.bitmap as Bitmap
-        var l = 0;
-        var t = 0;
-        var w = 0;
-        var h = 0;
-        if (boundingBox.left < 0) l = 0 else l = boundingBox.left.roundToInt()
-        if (boundingBox.top < 0) t = 0 else t = boundingBox.top.roundToInt()
-
-        if (boundingBox.height() > originalBmp.height) h = originalBmp.height else h =
-            boundingBox.height().roundToInt()
-        if (boundingBox.width() > originalBmp.width) w = originalBmp.width else w =
-            boundingBox.width().roundToInt()
-
-        val cop = Bitmap.createBitmap(originalBmp, l, t, w, h)
-
-//        imageSegmentationHelper.segment(cop)
+    override fun detecteToMask(boundingBox: RectF, i: Int) {
+        imageSegmentationHelper.segment(listCropImages[i])
 
     }
 
-    override fun detecteCrop(detectionResults: MutableList<Detection>, scaleFactor: Float) {
-        val list = ArrayList<Bitmap>()
+    override fun detecteCrop(detectionResults: MutableList<Detection>) {
         val listMask = ArrayList<Detection>()
 
         for (result in detectionResults) {
 
             val boundingBox = result.boundingBox
 
-            val top = boundingBox.top * scaleFactor
-            val bottom = boundingBox.bottom * scaleFactor
-            val left = boundingBox.left * scaleFactor
-            val right = boundingBox.right * scaleFactor
 
             val originalBmp = (imgViewCustom.drawable as BitmapDrawable?)!!.bitmap as Bitmap
 
-            var l = 0;
-            var t = 0;
-            var w = 0;
-            var h = 0;
-            if (boundingBox.left < 0) l = 0 else l = boundingBox.left.roundToInt()
-            if (boundingBox.top < 0) t = 0 else t = boundingBox.top.roundToInt()
-            Log.i("sadas boundingBox.height()", (boundingBox.height() + t).toString())
-            Log.i("sadas originalBmp.height", originalBmp.height.toString())
 
-
-            if ((boundingBox.height() + t) >= originalBmp.height) h = originalBmp.height else h =
-                boundingBox.height().roundToInt()
-            if ((boundingBox.width() + l) > originalBmp.width) w = originalBmp.width else w =
-                boundingBox.width().roundToInt()
-
-            Log.i("sadas originalBmp.height dd", h.toString())
-            Log.i("sadas originalBmp.height dd O",
-                originalBmp.getScaledHeight(originalBmp.height).toString())
+            val l = boundingBox.left.roundToInt()
+            val t = boundingBox.top.roundToInt()
+            val w = (boundingBox.right - boundingBox.left).roundToInt()
+            val h = (boundingBox.bottom - boundingBox.top).roundToInt()
 
             val cop = Bitmap.createBitmap(originalBmp, l, t, w, h)
-            list.add(cop)
+            listCropImages.add(cop)
             listMask.add(result)
         }
-        val temp = DetectedAdapter(this, list, listMask, this)
+        val temp = DetectedAdapter(this, listCropImages, listMask, this)
         binding.detectedMask.adapter = temp
         binding.subAuto.visibility = View.VISIBLE
 
     }
 
     override fun onMaskSelected(bitmap: Bitmap, listMask: Detection, layoutPosition: Int) {
+        objectSelected = objectDetected[layoutPosition].boundingBox;
         imageSegmentationHelper.segment(bitmap)
-//        imgViewCustom.clearOtherMask(layoutPosition,listMask)
     }
 
 }

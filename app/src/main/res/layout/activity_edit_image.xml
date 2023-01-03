@@ -47,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:adjustViewBounds="true"
-                android:background="@color/surfieGreen"
+                android:background="@color/red"
                 android:scaleType="fitCenter"
                 android:src="@drawable/sa" />
 
