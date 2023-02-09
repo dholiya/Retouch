@@ -1,5 +1,6 @@
 package zest.photoeditorpro.photoeditor.adapter
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.view.LayoutInflater
@@ -29,7 +30,6 @@ class DetectedAdapter(
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val image: ImageView = itemView.findViewById(R.id.image)
         val name: TextView = itemView.findViewById(R.id.name)
-        val tool: LinearLayoutCompat = itemView.findViewById(R.id.tool)
 
         init {
             itemView.setOnClickListener {
@@ -54,9 +54,11 @@ class DetectedAdapter(
         return imglist.size
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, i: Int) {
         val item = imglist[i]
         holder.image.setImageBitmap(item)
+        holder.name.text= listMask[i].categories[0].label.replaceFirstChar { it.uppercase() } + " "+(listMask[i].categories[0].score*100).toInt() +"%"
     }
 
 }

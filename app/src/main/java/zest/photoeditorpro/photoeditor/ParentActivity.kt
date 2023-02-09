@@ -73,12 +73,9 @@ class ParentActivity : AppCompatActivity() {
 
 
     fun checkPermissionAndOpenGallery(activity: Activity): Boolean {
-        if (checkSelfPermissionCompat(
-                activity, Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED
+        if (checkSelfPermissionCompat(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
         ) {
             return true;
-
         } else {
             Log.i("permission", "missing");
             // Permission is missing and must be requested.

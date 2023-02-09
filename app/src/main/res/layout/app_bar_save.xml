@@ -40,6 +40,17 @@
             tools:ignore="RelativeOverlap">
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/remove"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:text="@string/remove"
+                android:textColor="@color/white"
+                android:textSize="@dimen/small"
+                app:backgroundTint="@color/burntOrange" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/icon_done"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

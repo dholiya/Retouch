@@ -15,3 +15,12 @@ https://developers.google.com/codelabs/tflite-object-detection-android#6
 
 #for image editing
 https://github.com/tensorflow/examples/tree/master/lite/examples/style_transfer/android
+
+
+segmentation
+#google
+https://tfhub.dev/google/lite-model/mosaic/mobilenetmultiavgseg/1
+
+https://tfhub.dev/sayakpaul/lite-model/mobilenetv2-dm05-coco/dr/1
+https://tfhub.dev/sayakpaul/lite-model/mobilenetv2-coco/dr/1
+https://tfhub.dev/sayakpaul/lite-model/deeplabv3-mobilenetv2-ade20k/1/default/2

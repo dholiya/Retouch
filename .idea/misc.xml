@@ -75,13 +75,13 @@
         <entry key="..\:/Zest/Apps/Retouch Remove Objects/app/src/main/res/layout/activity_parent.xml" value="0.13766566908935443" />
         <entry key="..\:/Zest/Apps/Retouch Remove Objects/app/src/main/res/layout/app_bar.xml" value="0.13766566908935443" />
         <entry key="..\:/Zest/Apps/Retouch Remove Objects/app/src/main/res/layout/app_bar_home.xml" value="0.13766566908935443" />
-        <entry key="..\:/Zest/Apps/Retouch Remove Objects/app/src/main/res/layout/app_bar_save.xml" value="0.13766566908935443" />
+        <entry key="..\:/Zest/Apps/Retouch Remove Objects/app/src/main/res/layout/app_bar_save.xml" value="0.4" />
         <entry key="..\:/Zest/Apps/Retouch Remove Objects/app/src/main/res/layout/row_common.xml" value="0.13766566908935443" />
-        <entry key="..\:/Zest/Apps/Retouch Remove Objects/app/src/main/res/layout/row_mask.xml" value="0.11244121419410004" />
+        <entry key="..\:/Zest/Apps/Retouch Remove Objects/app/src/main/res/layout/row_mask.xml" value="0.4" />
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

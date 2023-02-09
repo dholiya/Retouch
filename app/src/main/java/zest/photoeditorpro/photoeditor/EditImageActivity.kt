@@ -1,10 +1,13 @@
 package zest.photoeditorpro.photoeditor
 
+import android.content.Context
+import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.RectF
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -18,17 +21,20 @@ import org.tensorflow.lite.task.vision.detector.Detection
 import org.tensorflow.lite.task.vision.segmenter.Segmentation
 import zest.photoeditorpro.photoeditor.adapter.DetectedAdapter
 import zest.photoeditorpro.photoeditor.adapter.ToolsAdapter
+import zest.photoeditorpro.photoeditor.algo.Algo
 import zest.photoeditorpro.photoeditor.data.Tools
 import zest.photoeditorpro.photoeditor.data.getToolList
 import zest.photoeditorpro.photoeditor.databinding.ActivityEditImageBinding
 import zest.photoeditorpro.photoeditor.helper.ImageSegmentationHelper
+import zest.photoeditorpro.photoeditor.helper.ImageSegmentationHelper2
 import zest.photoeditorpro.photoeditor.helper.ObjectDetectorHelper
 import zest.photoeditorpro.photoeditor.util.Str
-import zest.photoeditorpro.photoeditor.util.scaleBitmap
-import zest.photoeditorpro.photoeditor.util.scaleBitmapH
+import zest.photoeditorpro.photoeditor.util.Util
+import zest.photoeditorpro.photoeditor.util.saveMediaToStorage
 import zest.photoeditorpro.photoeditor.view.DetectedInterface
 import zest.photoeditorpro.photoeditor.view.RDImageView
 import java.util.*
+import java.util.concurrent.Callable
 import kotlin.math.roundToInt
 
 
@@ -37,12 +43,13 @@ import kotlin.math.roundToInt
 class EditImageActivity : AppCompatActivity(), ToolsAdapter.OnToolSelected,
     Slider.OnChangeListener, ObjectDetectorHelper.DetectorListener,
     ImageSegmentationHelper.SegmentationListener, DetectedInterface,
-    DetectedAdapter.OnMaskSelected {
+    DetectedAdapter.OnMaskSelected, ImageSegmentationHelper2.SegmentationListener2 {
     val listCropImages = ArrayList<Bitmap>()
 
     private val TAG: String = "EditImageActivity"
     private lateinit var objectDetectorHelper: ObjectDetectorHelper
     private lateinit var imageSegmentationHelper: ImageSegmentationHelper
+    private lateinit var imageSegmentationHelper2: ImageSegmentationHelper2
 
     var isToolSelected = false;
     var layoutPosition: Int? = null;
@@ -50,7 +57,7 @@ class EditImageActivity : AppCompatActivity(), ToolsAdapter.OnToolSelected,
     private lateinit var binding: ActivityEditImageBinding
     private lateinit var imgViewCustom: RDImageView;
 
-    companion object{
+    companion object {
         var objectDetected: MutableList<Detection> = mutableListOf<Detection>();
         //onclcikdetecteditem
         var objectSelected = RectF()
@@ -69,7 +76,7 @@ class EditImageActivity : AppCompatActivity(), ToolsAdapter.OnToolSelected,
         imgViewCustom = binding.imgViewCustom
         imgViewCustom.setImageURI(Uri.parse(intent.extras?.getString("data")))
 
-//        initCustomImageView();
+        initCustomImageView();
 
 
 //        Handler(Looper.getMainLooper()).postDelayed({
@@ -80,29 +87,144 @@ class EditImageActivity : AppCompatActivity(), ToolsAdapter.OnToolSelected,
             objectDetectorListener = this)
         imageSegmentationHelper = ImageSegmentationHelper(
             context = this,
-            imageSegmentationListener = this
-        )
+            imageSegmentationListener = this)
+
+        imageSegmentationHelper2 = ImageSegmentationHelper2(
+            context = this,
+            imageSegmentationListener = this)
 
         imgViewCustom.setEventListener(this);
+        binding.include.remove.setOnClickListener(View.OnClickListener {
 
+            binding.progress.visibility = ViewGroup.VISIBLE
+            Util.TaskRunner().executeAsync(
+                object : Callable<Bitmap> {
+
+                    override fun call(): Bitmap {
+                        val orignal =
+                            ((imgViewCustom.drawable as BitmapDrawable?)!!.bitmap as Bitmap)
+                        val maskBitmapq = Bitmap.createScaledBitmap(
+                            imgViewCustom.returnMask(),
+                            orignal.width,
+                            orignal.height,
+                            false
+                        );
+
+                        val o = saveMediaToStorage(orignal, applicationContext)
+//
+                        val m = saveMediaToStorage(maskBitmapq, applicationContext)
+                        ///////////clipdrop///////////////
+
+                        //NOTE : clipdrop API will only work with WHITE MASK, SO change mask color from RDIMageview when you use this API
+
+//                        val o = saveMediaToStorage(orignal, applicationContext)
+//
+//                        val m = saveMediaToStorage(maskBitmapq, applicationContext)
+
+//                        val client = OkHttpClient()
+//                        var oname = getRealPathFromURI(o)
+//                        oname = oname!!.substring(oname.lastIndexOf('/') + 1)
+//
+//                        var mname = getRealPathFromURI(m)
+//                        mname = mname!!.substring(mname.lastIndexOf('/') + 1)
+//
+//                        Log.i("adsdasd",oname)
+//                        Log.i("adsdasd",mname)
+//
+//
+//                        val requestBody =
+//                            MultipartBody.Builder()
+//                                .setType(MultipartBody.FORM)
+//                                .addFormDataPart(
+//                                    "image_file",
+//                                    oname.trim(),
+//                                    File(getRealPathFromURI(o)!!).asRequestBody(
+//                                        "images/jpeg".toMediaType())
+//                                )
+//                                .addFormDataPart(
+//                                    "mask_file",
+//                                    mname.trim(),
+//                                    File(getRealPathFromURI(m)!!).asRequestBody(
+//                                        "images/jpeg".toMediaType())
+//                                )
+//                                .build()
+//
+//                        val request =
+//                            Request.Builder()
+//                                .header("x-api-key",
+//                                    "b3e4af271570658a31b3892e28bd5ea6caf70494e70af29e92a450d4d37dee8ef2e9e485e66e56ce714ef848648cfa82")
+//                                .url("https://clipdrop-api.co/cleanup/v1")
+//                                .post(requestBody)
+//                                .build()
+//                        var response: Response = client.newCall(request).execute()
+//                        if (!response.isSuccessful) throw IOException("Unexpected code $response")
+//                        else {
+//                          var b=   response.body!!.bytes()
+//                            return (BitmapFactory.decodeByteArray(b,
+//                                0,
+//                                b.size))
+//                        }
+//
+                        /////////opencv///////////////
+                        return Algo().openCVInPaint(
+                            orignal,
+                            maskBitmapq
+                        )
+                    }
+                },
+                object : Util.TaskRunner.Callback<Bitmap> {
+                    override fun onComplete(result: Bitmap) {
+                        imgViewCustom.setImageBitmap(result)
+                        binding.progress.visibility = ViewGroup.GONE
+                        imgViewCustom.clearMask()
+                    }
+                }
+            );
+        })
 
 
     }
 
+
+    fun getRealPathFromUri(context: Context, contentUri: Uri?): String? {
+        var cursor: Cursor? = null
+        return try {
+            val proj = arrayOf(MediaStore.Images.Media.DATA)
+            cursor = context.getContentResolver().query(contentUri!!, proj, null, null, null)
+            val column_index = cursor!!.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+            cursor.moveToFirst()
+            cursor.getString(column_index)
+        } finally {
+            cursor?.close()
+        }
+    }
+
+    fun getRealPathFromURI(contentUri: Uri?): String? {
+        val proj = arrayOf<String>(MediaStore.Audio.Media.DATA)
+        val cursor: Cursor = managedQuery(contentUri, proj, null, null, null)
+        val column_index: Int = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+        cursor.moveToFirst()
+        return cursor.getString(column_index)
+    }
+
     private fun initCustomImageView() {
 
-        val orignal = scaleBitmapH((imgViewCustom.drawable as BitmapDrawable?)!!.bitmap as Bitmap)
+        val orignal =
+            Util().scaleBitmapH((imgViewCustom.drawable as BitmapDrawable?)!!.bitmap as Bitmap)
 
         var bmp = orignal;
         if (orignal.width < orignal.height) {
-            bmp = scaleBitmapH((imgViewCustom.drawable as BitmapDrawable?)!!.bitmap as Bitmap)
+            bmp =
+                Util().scaleBitmapH((imgViewCustom.drawable as BitmapDrawable?)!!.bitmap as Bitmap)
         } else {
-            bmp = scaleBitmap((imgViewCustom.drawable as BitmapDrawable?)!!.bitmap as Bitmap)
+            bmp = Util().scaleBitmap((imgViewCustom.drawable as BitmapDrawable?)!!.bitmap as Bitmap)
         }
 
-//        if(bmp.width>1080){
-//            bmp = scaleBitmap(bmp)
-//        }
+        if (bmp.width > Util().width) {
+            bmp = Util().scaleBitmap(bmp)
+        } else if (bmp.height > Util().height) {
+            bmp = Util().scaleBitmapH(bmp)
+        }
         imgViewCustom.setImageBitmap(bmp);
         if (bmp.width < bmp.height) {
             binding.outerLy.doOnLayout {
@@ -166,8 +288,6 @@ class EditImageActivity : AppCompatActivity(), ToolsAdapter.OnToolSelected,
                 val originalBmp =
                     (binding.imgViewCustom.drawable as BitmapDrawable?)!!.bitmap as Bitmap
                 objectDetectorHelper.detect(originalBmp)
-//                imageSegmentationHelper.segment(originalBmp)
-
                 isToolSelected = true
                 binding.subAuto.visibility = View.VISIBLE
             }
@@ -288,20 +408,19 @@ class EditImageActivity : AppCompatActivity(), ToolsAdapter.OnToolSelected,
 
 
     override fun detecteToMask(boundingBox: RectF, i: Int) {
-        imageSegmentationHelper.segment(listCropImages[i])
-
+//        imageSegmentationHelper.segment(listCropImages[i])
+        imageSegmentationHelper2.segment2(listCropImages[i])
     }
 
-    override fun detecteCrop(detectionResults: MutableList<Detection>) {
+    override fun detectedObjsShowBottom(detectionResults: MutableList<Detection>) {
         val listMask = ArrayList<Detection>()
+        listCropImages.clear()
 
         for (result in detectionResults) {
 
             val boundingBox = result.boundingBox
 
-
             val originalBmp = (imgViewCustom.drawable as BitmapDrawable?)!!.bitmap as Bitmap
-
 
             val l = boundingBox.left.roundToInt()
             val t = boundingBox.top.roundToInt()
@@ -318,9 +437,32 @@ class EditImageActivity : AppCompatActivity(), ToolsAdapter.OnToolSelected,
 
     }
 
+
+    //from bottom list
     override fun onMaskSelected(bitmap: Bitmap, listMask: Detection, layoutPosition: Int) {
         objectSelected = objectDetected[layoutPosition].boundingBox;
-        imageSegmentationHelper.segment(bitmap)
+//        imageSegmentationHelper.segment(bitmap)
+//        imageSegmentationHelper2.segment2(bitmap)
+
+    }
+
+    override fun onSegmentError2(error: String) {
+    }
+
+    override fun onSegmentResults2(
+        results: List<Segmentation>?,
+        inferenceTime: Long,
+        imageHeight: Int,
+        imageWidth: Int,
+    ) {
+        binding.progress.visibility = View.GONE;
+        val originalBmp = (imgViewCustom.drawable as BitmapDrawable?)!!.bitmap as Bitmap
+
+        imgViewCustom.setSegmentResults(results ?: LinkedList<Segmentation>(),
+            imageHeight,
+            imageWidth,
+            originalBmp
+        )
     }
 
 }

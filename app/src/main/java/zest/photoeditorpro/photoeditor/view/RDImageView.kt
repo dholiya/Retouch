@@ -10,7 +10,6 @@ import android.util.Log
 import android.util.SparseArray
 import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatImageView
-import org.opencv.core.Rect
 import org.tensorflow.lite.task.vision.detector.Detection
 import org.tensorflow.lite.task.vision.segmenter.Segmentation
 import zest.photoeditorpro.photoeditor.EditImageActivity.Companion.objectDetected
@@ -53,11 +52,11 @@ class RDImageView : AppCompatImageView, canvasInterface {
     var clearCanvas = false
 
 
-
     companion object {
         lateinit var mbitmap: Bitmap
+        lateinit var detectedBoxBitmap: Bitmap
+        lateinit var detectedBoxCanvas: Canvas
         lateinit var mcanvas: Canvas
-        private const val ALPHA_COLOR = 128
 
         var fit_height = 0
         var fit_width = 0
@@ -75,8 +74,10 @@ class RDImageView : AppCompatImageView, canvasInterface {
 
 
     fun initCon() {
-
-        mPaint.setARGB(150, 255, 99, 99)
+        //opencv
+//        mPaint.setARGB(150, 255, 99, 99)
+        //clipdrop
+        mPaint.setARGB(255, 255, 255, 255)
         mPaint.strokeWidth = 25F
         mPaint.isAntiAlias = true
         mPaint.strokeCap = Paint.Cap.ROUND
@@ -108,10 +109,13 @@ class RDImageView : AppCompatImageView, canvasInterface {
         fit_width = w
 
         mbitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        detectedBoxBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
 
         mcanvas = Canvas()
+        detectedBoxCanvas = Canvas()
 
         mcanvas.setBitmap(mbitmap)
+        detectedBoxCanvas.setBitmap(detectedBoxBitmap)
         mcanvas.drawColor(Color.TRANSPARENT)
     }
 
@@ -121,9 +125,11 @@ class RDImageView : AppCompatImageView, canvasInterface {
         canvas.save();
         if (clearCanvas) {
             mcanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+            detectedBoxCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
             clearCanvas = false;
         }
         canvas.drawBitmap(mbitmap, 0f, 0f, null)
+        canvas.drawBitmap(detectedBoxBitmap, 0f, 0f, null)
         canvas.restore();
 
     }
@@ -151,7 +157,7 @@ class RDImageView : AppCompatImageView, canvasInterface {
                 }
             } else if (editMode.equals(Str.AUTO)) {
 
-                var i=0;
+                var i = 0;
                 for (result in objectDetected) {
 
                     val boundingBox = result.boundingBox
@@ -170,7 +176,7 @@ class RDImageView : AppCompatImageView, canvasInterface {
 
                         if (System.currentTimeMillis() - time > ZOOM_TIME_DIFF_THRESHOLD) {
                             objectSelected = boundingBox
-                            detectedInterface!!.detecteToMask(boundingBox,i)
+                            detectedInterface!!.detecteToMask(boundingBox, i)
                             time = System.currentTimeMillis()
 //                            editMode = Str.MODE_NONE
                         }
@@ -231,7 +237,6 @@ class RDImageView : AppCompatImageView, canvasInterface {
             }
             MotionEvent.ACTION_CANCEL -> {}
             MotionEvent.ACTION_UP -> {
-//                mcanvas.drawLine(startX, startY, endX, endY, mPaint)
             }
 
         }
@@ -254,7 +259,6 @@ class RDImageView : AppCompatImageView, canvasInterface {
 
         }
     }
-
 
     private fun initTransform(event: MotionEvent, ignoreIndex: Int) {
         var p1 = 0xffff
@@ -284,7 +288,6 @@ class RDImageView : AppCompatImageView, canvasInterface {
             initialTapeline.set(event, p1, p2)
         }
     }
-
 
     private fun transform(event: MotionEvent) {
 
@@ -338,29 +341,9 @@ class RDImageView : AppCompatImageView, canvasInterface {
     }
 
 
-
     @JvmName("getEditMode1")
     fun getEditMode(): Int {
         return editMode;
-    }
-
-//    fun drawRect(result: Bitmap) {
-//        invalidate()
-//        mcanvas.drawBitmap(result, 0F,0F, null)
-//        Log.i("asdas c",mcanvas.width.toString())
-//        Log.i("asdas b", mbitmap.width.toString())
-//    }
-
-    fun drawRect(result: Array<Rect>) {
-        invalidate()
-        for (r in result) {
-            Log.i("sad", r.x.toFloat().toString())
-            val rect = RectF(r.x.toFloat(),
-                r.y.toFloat(),
-                (r.x + r.width).toFloat(),
-                (r.y + r.height).toFloat())
-            mcanvas.drawRect(rect, mPaint)
-        }
     }
 
     //object detect
@@ -370,7 +353,8 @@ class RDImageView : AppCompatImageView, canvasInterface {
         imageWidth: Int,
     ) {
         invalidate()
-
+        filterDetected.clear()
+        objectDetected.clear()
         mPaint.setARGB(255, 25, 114, 120)
         mPaint.strokeWidth = 4F
 
@@ -395,18 +379,26 @@ class RDImageView : AppCompatImageView, canvasInterface {
             if (result.boundingBox.top + result.boundingBox.height() > imageHeight) {
                 result.boundingBox.bottom = imageHeight.toFloat();
             }
+            if (result.boundingBox.left < 0) {
+                result.boundingBox.left = 0F
+            }
+            if (result.boundingBox.top < 0) {
+                result.boundingBox.top = 0F
+            }
+
             filterDetected.add(result)
             val rect = RectF(left, top, right, bottom)
-            mcanvas.drawRect(rect, mPaint)
+            detectedBoxCanvas.drawRect(rect, mPaint)
         }
 
         objectDetected = filterDetected;
 
-        detectedInterface!!.detecteCrop(filterDetected)
+        detectedInterface!!.detectedObjsShowBottom(filterDetected)
 
+        //opencv
         mPaint.setARGB(150, 255, 99, 99)
+        //clipdrop
         mPaint.strokeWidth = 25F
-
     }
 
 
@@ -442,12 +434,6 @@ class RDImageView : AppCompatImageView, canvasInterface {
                     isExist = true
                 }
                 val color = colorLabel.getColor()
-//                val color = Color.argb(
-//                    ALPHA_COLOR,
-//                    Color.red(R.color.red),
-//                    Color.green(R.color.green),
-//                    Color.blue(R.color.blue)
-//                )
                 pixels[i] = color
             }
 
@@ -458,13 +444,14 @@ class RDImageView : AppCompatImageView, canvasInterface {
                 Bitmap.Config.ARGB_8888
             )
 
+            val maskScalUp = 0.025
 
             val scaleBitmap = Bitmap.createScaledBitmap(image,
-                (objectSelected.width().toInt()),
-                (objectSelected.height().toInt()),
+                (objectSelected.width() + objectSelected.width()*maskScalUp).toInt(),
+                (objectSelected.height() +objectSelected.height()*maskScalUp).toInt(),
                 false)
-            val l = (objectSelected.left)
-            val r = (objectSelected.top)
+            val l = (objectSelected.left) -objectSelected.width()*maskScalUp/2
+            val r = (objectSelected.top) -objectSelected.height()*maskScalUp/2
 
             mcanvas.drawBitmap(scaleBitmap,
                 (l.roundToInt()).toFloat(),
@@ -484,8 +471,12 @@ class RDImageView : AppCompatImageView, canvasInterface {
 
         fun getColor(): Int {
             // Use completely transparent for the background color.
-            return if (id == 0) Color.TRANSPARENT else Color.argb(
-                ALPHA_COLOR,
+            return if (id == 0) Color.TRANSPARENT else
+//                clipdrop
+//                Color.WHITE
+//                opencv
+                Color.argb(
+                150,
                 Color.red(rgbColor),
                 Color.green(rgbColor),
                 Color.blue(rgbColor)

@@ -26,6 +26,7 @@ import org.tensorflow.lite.task.core.BaseOptions
 import org.tensorflow.lite.task.vision.segmenter.ImageSegmenter
 import org.tensorflow.lite.task.vision.segmenter.OutputType
 import org.tensorflow.lite.task.vision.segmenter.Segmentation
+import kotlin.reflect.typeOf
 
 /**
  * Class responsible to run the Image Segmentation model. more information about the DeepLab model
@@ -37,24 +38,24 @@ import org.tensorflow.lite.task.vision.segmenter.Segmentation
  * 'chair', 'cow', 'diningtable', 'dog', 'horse', 'motorbike', 'person', 'pottedplant', 'sheep',
  * 'sofa', 'train', 'tv'
  */
-class ImageSegmentationHelper(
+class ImageSegmentationHelper2(
     var numThreads: Int = 3,
     var currentDelegate: Int = 0,
-    var currentModel: Int = 0,
+    var currentModel: Int = 1,
     val context: Context,
-    val imageSegmentationListener: SegmentationListener?,
+    val imageSegmentationListener: SegmentationListener2?,
 ) {
     private var imageSegmenter: ImageSegmenter? = null
 
     init {
-        setupImageSegmenter()
+        setupImageSegmenter2()
     }
 
-    fun clearImageSegmenter() {
+    fun clearImageSegmenter2() {
         imageSegmenter = null
     }
 
-    private fun setupImageSegmenter() {
+    private fun setupImageSegmenter2() {
         // Create the base options for the segment
         val optionsBuilder =
             ImageSegmenter.ImageSegmenterOptions.builder()
@@ -71,7 +72,7 @@ class ImageSegmentationHelper(
                 if (CompatibilityList().isDelegateSupportedOnThisDevice) {
                     baseOptionsBuilder.useGpu()
                 } else {
-                    imageSegmentationListener?.onSegmentError("GPU is not supported on this device")
+                    imageSegmentationListener?.onSegmentError2("GPU is not supported on this device")
                 }
             }
             DELEGATE_NNAPI -> {
@@ -98,23 +99,24 @@ class ImageSegmentationHelper(
         optionsBuilder.setOutputType(OutputType.CATEGORY_MASK)
         try {
             imageSegmenter =
-                ImageSegmenter.createFromFileAndOptions(
+                  ImageSegmenter.createFromFileAndOptions(
                     context,
                     modelName,
                     optionsBuilder.build()
                 )
+
         } catch (e: IllegalStateException) {
-            imageSegmentationListener?.onSegmentError(
+            imageSegmentationListener?.onSegmentError2(
                 "Image segmentation failed to initialize. See error logs for details"
             )
             Log.e(TAG, "TFLite failed to load model with error: " + e.message)
         }
     }
 
-    fun segment(image: Bitmap) {
+    fun segment2(image: Bitmap) {
 
         if (imageSegmenter == null) {
-            setupImageSegmenter()
+            setupImageSegmenter2()
         }
 
         // Inference time is the difference between the system time at the start and finish of the
@@ -137,7 +139,7 @@ class ImageSegmentationHelper(
         val segmentResult = imageSegmenter?.segment(tensorImage)
         inferenceTime = SystemClock.uptimeMillis() - inferenceTime
 
-        imageSegmentationListener?.onSegmentResults(
+        imageSegmentationListener?.onSegmentResults2(
             segmentResult,
             inferenceTime,
             tensorImage.height,
@@ -145,9 +147,9 @@ class ImageSegmentationHelper(
         )
     }
 
-    interface SegmentationListener {
-        fun onSegmentError(error: String)
-        fun onSegmentResults(
+    interface SegmentationListener2 {
+        fun onSegmentError2(error: String)
+        fun onSegmentResults2(
             results: List<Segmentation>?,
             inferenceTime: Long,
             imageHeight: Int,
@@ -162,7 +164,6 @@ class ImageSegmentationHelper(
         const val MODEL_DEEPLABV3 = 0
         const val MODEL_DEEPcoco = 1
         const val MODEL_DEEfm = 2
-
         private const val TAG = "Image Segmentation Helper"
     }
 }
